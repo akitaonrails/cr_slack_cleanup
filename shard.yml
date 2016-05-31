@@ -1,0 +1,7 @@
+name: cr_slack_cleanup
+version: 0.1.0
+
+authors:
+  - AkitaOnRails <fabioakita@gmail.com>
+
+license: MIT
