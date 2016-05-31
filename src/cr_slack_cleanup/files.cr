@@ -23,23 +23,24 @@ module CrSlackCleanup
   class Files
     getter body
 
+    @http_client : HTTP::Client
     def initialize(@token : String)
       @body = ""
+      @http_client = HTTP::Client.new("slack.com", ssl: true).tap do |c|
+                       c.connect_timeout = 30.seconds
+                       c.dns_timeout = 2.seconds
+                       c.read_timeout = 5.minutes
+                     end
+    end
+
+    def finalize
+      @http_client.close
     end
 
     def fetch! : FilesResponse
-      client = HTTP::Client.new("slack.com", ssl: true)
-      client.connect_timeout = 30.seconds
-      client.dns_timeout = 2.seconds
-      client.read_timeout = 5.minutes
-
-      begin
-        response = client.get("/api/files.list?token=#{@token}")
-        @body = response.body || "{}"
-        FilesResponse.from_json(@body)
-      ensure
-        client.close
-      end
+      response = @http_client.get("/api/files.list?token=#{@token}")
+      @body = response.body || "{}"
+      FilesResponse.from_json(@body)
     end
   end
 end
