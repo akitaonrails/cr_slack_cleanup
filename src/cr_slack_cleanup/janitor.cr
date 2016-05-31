@@ -3,8 +3,19 @@ require "json"
 
 module CrSlackCleanup
   class Janitor
+    @http_client : HTTP::Client
+
     def initialize(@domain : String, @token : String, files_response : CrSlackCleanup::FilesResponse)
       @files = ( files_response.try &.files ) as Array(FilesItemResponse)
+      @http_client = HTTP::Client.new("#{@domain}.slack.com", ssl: true).tap do |c|
+                       c.connect_timeout = 15.seconds
+                       c.dns_timeout = 5.seconds
+                       c.read_timeout = 3.minutes
+                     end
+    end
+
+    def finalize
+      @http_client.close
     end
 
     def cleanup!
@@ -27,17 +38,8 @@ module CrSlackCleanup
       end
     end
 
-    private def open_client
-      HTTP::Client.new("#{@domain}.slack.com", ssl: true).tap do |c|
-        c.connect_timeout = 15.seconds
-        c.dns_timeout = 5.seconds
-        c.read_timeout = 3.minutes
-      end
-    end
-
     private def delete(item_id, item_permalink, channel)
-      http_client = open_client
-      response = http_client.post("/api/files.delete?token=#{@token}&file=#{item_id}")
+      response = @http_client.post("/api/files.delete?token=#{@token}&file=#{item_id}")
       if response.status_code == 200
         body = response.body || ""
         if body =~ /\"ok\"\:true/
@@ -49,8 +51,6 @@ module CrSlackCleanup
     rescue IO::Timeout
       sleep 1
       delete item_id, item_permalink, channel
-    ensure
-      http_client.try &.close
     end
   end
 end
