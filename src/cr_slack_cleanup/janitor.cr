@@ -21,13 +21,11 @@ module CrSlackCleanup
     def cleanup!
       channel = Channel(Tuple(Symbol, String)).new
 
-      counter = 0
       @files.each do |item|
-        counter += 1
         spawn delete( item.id, item.permalink, channel )
       end
 
-      counter.times do
+      @files.size.times do
         result = channel.receive
         case result[0]
         when :ok
