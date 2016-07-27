@@ -14,8 +14,8 @@ module CrSlackCleanup
       id: {type: String},
       name: {type: String},
       filetype: {type: String},
-      created: {type: Time, converter: Time::EpochConverter}
-      timestamp: {type: Time, converter: Time::EpochConverter}
+      created: {type: Time, converter: Time::EpochConverter},
+      timestamp: {type: Time, converter: Time::EpochConverter},
       permalink: {type: String}
     })
   end
@@ -26,7 +26,7 @@ module CrSlackCleanup
     @http_client : HTTP::Client
     def initialize(@token : String)
       @body = ""
-      @http_client = HTTP::Client.new("slack.com", ssl: true).tap do |c|
+      @http_client = HTTP::Client.new("slack.com", tls: true).tap do |c|
                        c.connect_timeout = 30.seconds
                        c.dns_timeout = 2.seconds
                        c.read_timeout = 5.minutes

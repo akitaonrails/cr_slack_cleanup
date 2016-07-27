@@ -7,7 +7,7 @@ module CrSlackCleanup
 
     def initialize(@domain : String, @token : String, files_response : CrSlackCleanup::FilesResponse)
       @files = ( files_response.try &.files ) as Array(FilesItemResponse)
-      @http_client = HTTP::Client.new("#{@domain}.slack.com", ssl: true).tap do |c|
+      @http_client = HTTP::Client.new("#{@domain}.slack.com", tls: true).tap do |c|
                        c.connect_timeout = 15.seconds
                        c.dns_timeout = 5.seconds
                        c.read_timeout = 3.minutes
